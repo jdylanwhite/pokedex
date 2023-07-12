@@ -20,8 +20,8 @@ types <- mainTable[mainTable$X1 == "Type",2] %>% pull %>% strsplit(" ")
 types <- types[[1]]
 
 # Get the height and weight from the table
-height <- typeTable[mainTable$X1 == "Height",2] %>% pull
-weight <- typeTable[mainTable$X1 == "Weight",2] %>% pull
+height <- mainTable[mainTable$X1 == "Height",2] %>% pull
+weight <- mainTable[mainTable$X1 == "Weight",2] %>% pull
 
 # Put together the main data table for the pokemon
 columnNames <- c("Weight","Height", paste("Type", c(1:length(types))))
