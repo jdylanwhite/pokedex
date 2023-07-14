@@ -1,6 +1,7 @@
 # Use the rvest package for scraping data
 library(rvest)
 library(dplyr)
+library(tidyr)
 
 # Set the URL to fetch data from
 url <- "https://pokemondb.net/pokedex/gengar"
@@ -11,23 +12,38 @@ read_html(url)
 # Read the body from the page
 body <- url %>% read_html() %>% html_nodes("body")
 
-# Get the table with the "type" information
-vitalsTables <- body %>% html_nodes("table.vitals-table")
-mainTable <- html_table(vitalsTables[1])[[1]]
+# Get the tables with the vital information
+vitals_tables <- html_nodes(body, "table.vitals-table")
+main_table <- html_table(vitals_tables[1])[[1]]
+stats_table <- html_table(vitals_tables[4])[[1]]
 
-# Get the pokemon types from the table
-types <- mainTable[mainTable$X1 == "Type",2] %>% pull %>% strsplit(" ")
-types <- types[[1]]
+# Function to help us turn the first row of our tibble into the header
+header_from_row <- function(df) {
+  names(df) <- as.character(unlist(df[1, ]))
+  df[-1, ]
+}
 
-# Get the height and weight from the table
-height <- mainTable[mainTable$X1 == "Height",2] %>% pull
-weight <- mainTable[mainTable$X1 == "Weight",2] %>% pull
+# Get the types, species, height, and weight from the table
+main_tbl <- main_table %>%
+  t %>%
+  as_tibble %>%
+  header_from_row %>%
+  select(c("Type", "Species", "Height", "Weight"))
 
-# Put together the main data table for the pokemon
-columnNames <- c("Weight","Height", paste("Type", c(1:length(types))))
-dataTbl <- c(weight,height,types) %>% t %>% as_tibble
-names(dataTbl) <- columnNames
+# Get stats columns
+stats_tbl <- stats_table %>%
+  select(c("X1", "X2")) %>%
+  t %>%
+  as_tibble %>%
+  header_from_row
 
-# TODO: Build stats columns
+# Merge the data
+data_tbl <- cbind(main_tbl, stats_tbl)
+
+# Clean up the types by breaking them into different columns
+num_types <- data_tbl$Type %>% strsplit(" ") %>% unlist %>% length
+col_names <- paste("Type", c(1:num_types))
+data_tbl <- data_tbl %>%
+  separate(col = "Type", into = col_names)
 
 # TODO: Build evolution columns
