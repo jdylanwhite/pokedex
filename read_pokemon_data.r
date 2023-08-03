@@ -1,4 +1,4 @@
-# Use the rvest package for scraping data
+# Load packages
 library(rvest)
 library(dplyr)
 library(tidyr)
