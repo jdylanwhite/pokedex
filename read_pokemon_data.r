@@ -2,6 +2,7 @@
 library(rvest)
 library(dplyr)
 library(tidyr)
+library(tibble)
 
 # Read Pokedex ------------------------------------------------------------
 
@@ -80,22 +81,27 @@ fetch_pokemon_data <- function(row) {
   
   # TODO: Build evolution columns
   
-  # TODO: Ensure columns are fixed. Types sometimes only has 1.
-  # https://stackoverflow.com/questions/45857787/adding-column-if-it-does-not-exist
-  # cols <- c(top_speed = NA_real_, nhj = NA_real_, mpg = NA_real_)
-  # add_column(mtcars, !!!cols[setdiff(names(cols), names(mtcars))])
+  # Ensure columns are fixed. Types sometimes only has 1, but can be up to 3.
+  cols <- c(
+    `Type 1` = NA_character_, 
+    `Type 2` = NA_character_, 
+    `Type 3` = NA_character_
+  )
+  data_tbl <- add_column(data_tbl, 
+                         !!!cols[setdiff(names(cols), names(data_tbl))])
   
-  # TODO: Add sleep timer
-
+  # Add a sleep timer to not overload the system
+  Sys.sleep(1)
+  
   return(data_tbl)
     
 }
 
 # Get Pokemon data
+# TODO: Remove "head"
 pokemon_tbl <- apply(head(data_tbl),1,fetch_pokemon_data)
+pokemon_tbl <- bind_rows(pokemon_tbl)
 
-# TODO: Get list of tbl into one tbl
-# https://stackoverflow.com/questions/61322131/convert-a-large-list-of-tibbles-into-a-single-tibble
-# rbind.data.frame(pokemon_tbl)
-
-# TODO: Merge data_tbl and pokemon_tbl
+# Merge data_tbl and pokemon_tbl
+# TODO: Remove "head"
+data_tbl <- cbind(head(data_tbl),pokemon_tbl)
