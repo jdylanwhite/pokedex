@@ -1,3 +1,10 @@
+# J. Dylan White
+# Scrape information for all Pokemon from Pokemon.db
+
+
+# Load Packages -----------------------------------------------------------
+
+
 # Load packages
 library(rvest)
 library(dplyr)
@@ -79,8 +86,6 @@ fetch_pokemon_data <- function(row) {
   data_tbl <- data_tbl %>%
     separate(col = "Type", into = col_names)
   
-  # TODO: Build evolution columns
-  
   # Ensure columns are fixed. Types sometimes only has 1, but can be up to 3.
   cols <- c(
     `Type 1` = NA_character_, 
@@ -89,6 +94,47 @@ fetch_pokemon_data <- function(row) {
   )
   data_tbl <- add_column(data_tbl, 
                          !!!cols[setdiff(names(cols), names(data_tbl))])
+  
+  # Look for evolution information
+  evo_node <- html_nodes(body,"div.infocard-list-evo")
+  
+  # Check to see if there was any evolution information
+  has_evo <- length(evo_node) == 1
+  
+  # If there was evolution information
+  if (has_evo) {
+    
+    # Get the list of evolutions
+    evo_list <- evo_node %>% html_nodes("a.ent-name") %>% html_text
+    
+    # Get the maximum number of evolutions for this Pokemon's evolution chain
+    max_evo <- length(evo_list)
+    
+    # Find out where in the evolution chain this Pokemon sits 
+    evo_place <- which(tolower(evo_list)==name)
+    
+    # Calculate an evolution index, how far to max evolution the Pokemon is
+    evo_index <- round(as.double(evo_place)/as.double(max_evo),2)
+    
+    # Otherwise, assume there is not evolution of this Pokemon
+  } else {
+    
+    # Set the evolution information to NA
+    max_evo <- NA_integer_
+    evo_place <- NA_integer_
+    evo_index <- NA_integer_
+    
+  } 
+  
+  # Append evolution information to the data tibble
+  evo_list <- c(
+    `Has Evolution`=has_evo,
+    `Evolution Place`=evo_place,
+    `Maximum Evolution Count`=max_evo,
+    `Evolution Index`=evo_index
+  )
+  evo_tbl <- evo_list %>% t %>% as_tibble
+  data_tbl <- cbind(data_tbl,evo_tbl)
   
   # Add a sleep timer to not overload the system
   Sys.sleep(1)
@@ -105,3 +151,9 @@ pokemon_tbl <- bind_rows(pokemon_tbl)
 # Merge data_tbl and pokemon_tbl
 # TODO: Remove "head"
 data_tbl <- cbind(head(data_tbl),pokemon_tbl)
+
+
+# Clean data --------------------------------------------------------------
+
+
+# TODO: Clean up height/weight columns to just have metric units

@@ -1,3 +1,6 @@
+# J. Dylan White
+# Scrape the full Pokedex from Pokemon.db
+
 # Load packages
 library(rvest)
 library(dplyr)
