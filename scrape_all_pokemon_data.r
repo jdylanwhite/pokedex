@@ -11,7 +11,9 @@ library(dplyr)
 library(tidyr)
 library(tibble)
 
+
 # Read Pokedex ------------------------------------------------------------
+
 
 # Set the URL to fetch data from
 url <- "https://pokemondb.net/pokedex/national"
@@ -144,16 +146,29 @@ fetch_pokemon_data <- function(row) {
 }
 
 # Get Pokemon data
-# TODO: Remove "head"
-pokemon_tbl <- apply(head(data_tbl),1,fetch_pokemon_data)
+pokemon_tbl <- apply(data_tbl,1,fetch_pokemon_data)
 pokemon_tbl <- bind_rows(pokemon_tbl)
 
 # Merge data_tbl and pokemon_tbl
-# TODO: Remove "head"
-data_tbl <- cbind(head(data_tbl),pokemon_tbl)
+data_tbl <- cbind(data_tbl,pokemon_tbl)
 
 
 # Clean data --------------------------------------------------------------
 
 
-# TODO: Clean up height/weight columns to just have metric units
+# Clean up Height field to only show meters
+data_tbl$Height <- data_tbl$Height %>% 
+  str_extract("\\d+\\.*\\d*") %>%
+  as.numeric
+
+# Clean up Weight field to only show kilograms
+data_tbl$Weight <- data_tbl$Weight %>% 
+  str_extract("\\d+\\.*\\d*") %>%
+  as.numeric
+
+
+# Write data to output file -----------------------------------------------
+
+
+# Write data to CSV
+write.table(data_tbl,"~/Projects/pokedex/data/pokedex.csv")
