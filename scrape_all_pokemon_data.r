@@ -14,39 +14,56 @@ library(tibble)
 
 # Read Pokedex ------------------------------------------------------------
 
+fetch_pokedex_data <- function() {
 
-# Set the URL to fetch data from
-url <- "https://pokemondb.net/pokedex/national"
+  # Set the URL to fetch data from
+  url <- "https://pokemondb.net/pokedex/national"
 
-# Read the URL
-read_html(url)
+  # Read the URL
+  read_html(url)
+  
+  # Read the body from the page
+  body <- url %>% read_html() %>% html_nodes("body")
+  
+  # Get the info cards for each Pokemon
+  infocards <- html_nodes(body,"span.infocard-lg-data.text-muted")
+  
+  # Fetch the Pokemon numbers
+  numbers <- infocards %>% 
+    html_element("small") %>%
+    html_text()
+  
+  # Fetch the Pokemon names
+  names <- infocards %>% 
+    html_element("a") %>%
+    html_text()
+  
+  # Fetch the Pokemon URLs
+  urls <- infocards %>% 
+    html_element("a") %>%
+    html_attr("href")
+  urls<- paste0("https://pokemondb.net",urls)
+  
+  # Create tibble for Pokedex
+  data_tbl <- tibble(numbers,names,urls) %>% 
+    rename(Number=numbers,Name=names,URLs=urls)
+  data_tbl$Number <- substring(data_tbl$Number,2) %>% as.numeric()
 
-# Read the body from the page
-body <- url %>% read_html() %>% html_nodes("body")
+  return(data_tbl)
 
-# Get the info cards for each Pokemon
-infocards <- html_nodes(body,"span.infocard-lg-data.text-muted")
+}
 
-# Fetch the Pokemon numbers and names from the info card
-numbers <- html_text(html_element(infocards,"small"))
-names <- html_text(html_element(infocards,"a"))
+pokedex_tbl <- fetch_pokedex_data()
 
-# Create tibble for Pokedex
-data_tbl <- tibble(numbers,names) %>% rename(Number=numbers,Name=names)
-data_tbl$Number <- substring(data_tbl$Number,2) %>% as.numeric()
 
 # Fetch Pokemon Data ------------------------------------------------------
 
+
 fetch_pokemon_data <- function(row) {
   
-  # Get the name from the Pokedex data tibble
+  # Fetch the name and URL from the Pokedex data
   name <- row[2]
-  
-  # Convert name to lower case for the URL
-  name <- tolower(name)
-  
-  # Build the URL to fetch Pokemon data
-  url <- paste0("https://pokemondb.net/pokedex/",name)
+  url <- row[3]
   
   # Read the URL
   read_html(url)
@@ -113,11 +130,11 @@ fetch_pokemon_data <- function(row) {
     max_evo <- length(evo_list)
     
     # Find out where in the evolution chain this Pokemon sits 
-    evo_place <- which(tolower(evo_list)==name)
-    
+    evo_place <- which(tolower(evo_list)==tolower(name))
+
     # Calculate an evolution index, how far to max evolution the Pokemon is
     evo_index <- round(as.double(evo_place)/as.double(max_evo),2)
-    
+
     # Otherwise, assume there is not evolution of this Pokemon
   } else {
     
@@ -135,7 +152,9 @@ fetch_pokemon_data <- function(row) {
     `Maximum Evolution Count`=max_evo,
     `Evolution Index`=evo_index
   )
-  evo_tbl <- evo_list %>% t %>% as_tibble
+  evo_tbl <- evo_list %>% 
+    t %>% 
+    as_tibble
   data_tbl <- cbind(data_tbl,evo_tbl)
   
   # Add a sleep timer to not overload the system
@@ -146,25 +165,33 @@ fetch_pokemon_data <- function(row) {
 }
 
 # Get Pokemon data
-pokemon_tbl <- apply(data_tbl,1,fetch_pokemon_data)
-pokemon_tbl <- bind_rows(pokemon_tbl)
+pokemon_tbl <- apply(pokedex_tbl,1,fetch_pokemon_data) %>% 
+  bind_rows()
 
-# Merge data_tbl and pokemon_tbl
-data_tbl <- cbind(data_tbl,pokemon_tbl)
+# Merge pokedex_tbl and pokemon_tbl
+pokemon_tbl <- cbind(pokedex_tbl,pokemon_tbl)
 
 
 # Clean data --------------------------------------------------------------
 
 
-# Clean up Height field to only show meters
-data_tbl$Height <- data_tbl$Height %>% 
-  str_extract("\\d+\\.*\\d*") %>%
-  as.numeric
+clean_pokemon_data <- function(data_tbl) {
 
-# Clean up Weight field to only show kilograms
-data_tbl$Weight <- data_tbl$Weight %>% 
-  str_extract("\\d+\\.*\\d*") %>%
-  as.numeric
+  # Clean up Height field to only show meters
+  data_tbl$Height <- data_tbl$Height %>% 
+    str_extract("\\d+\\.*\\d*") %>%
+    as.numeric
+  
+  # Clean up Weight field to only show kilograms
+  data_tbl$Weight <- data_tbl$Weight %>% 
+    str_extract("\\d+\\.*\\d*") %>%
+    as.numeric
+  
+  return(data_tbl)
+  
+}
+
+pokemon_tbl <- clean_pokemon_data(pokemon_tbl)
 
 
 # Write data to output file -----------------------------------------------

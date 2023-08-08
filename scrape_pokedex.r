@@ -18,10 +18,23 @@ body <- url %>% read_html() %>% html_nodes("body")
 # Get the info cards for each Pokemon
 infocards <- html_nodes(body,"span.infocard-lg-data.text-muted")
 
-# Fetch the Pokemon numbers and names from the info card
-numbers <- html_text(html_element(infocards,"small"))
-names <- html_text(html_element(infocards,"a"))
+# Fetch the Pokemon numbers
+numbers <- infocards %>% 
+  html_element("small") %>%
+  html_text()
+
+# Fetch the Pokemon names
+names <- infocards %>% 
+  html_element("a") %>%
+  html_text()
+
+# Fetch the Pokemon URLs
+urls <- infocards %>% 
+  html_element("a") %>%
+  html_attr("href")
+urls <- paste0("https://pokemondb.net",urls)
 
 # Create tibble for Pokedex
-data_tbl <- tibble(numbers,names) %>% rename(Number=numbers,Name=names)
+data_tbl <- tibble(numbers,names,urls) %>% 
+  rename(Number=numbers,Name=names,URLs=urls)
 data_tbl$Number <- substring(data_tbl$Number,2) %>% as.numeric()
