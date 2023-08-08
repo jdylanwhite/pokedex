@@ -10,6 +10,7 @@ library(rvest)
 library(dplyr)
 library(tidyr)
 library(tibble)
+library(stringr)
 
 
 # Read Pokedex ------------------------------------------------------------
@@ -198,4 +199,4 @@ pokemon_tbl <- clean_pokemon_data(pokemon_tbl)
 
 
 # Write data to CSV
-write.table(data_tbl,"~/Projects/pokedex/data/pokedex.csv")
+write.table(pokemon_tbl,"~/Projects/pokedex/data/pokedex.csv")
