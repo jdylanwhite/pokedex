@@ -23,7 +23,7 @@ name <- "Tauros"
 name <- tolower(name)
 
 # Build the URL to fetch Pokemon data
-url <- paste0("https://pokemondb.net/pokedex/",name)
+url <- paste0("https://pokemondb.net/pokedex/", name)
 
 
 # Parse Main Tables -------------------------------------------------------
@@ -79,11 +79,11 @@ data_tbl <- data_tbl %>%
 
 # Ensure columns are fixed. Types sometimes only has 1, but can be up to 3.
 cols <- c(
-  `Type 1` = NA_character_, 
-  `Type 2` = NA_character_, 
+  `Type 1` = NA_character_,
+  `Type 2` = NA_character_,
   `Type 3` = NA_character_
 )
-data_tbl <- add_column(data_tbl, 
+data_tbl <- add_column(data_tbl,
                        !!!cols[setdiff(names(cols), names(data_tbl))])
 
 
@@ -91,42 +91,42 @@ data_tbl <- add_column(data_tbl,
 
 
 # Look for evolution information
-evo_node <- html_nodes(body,"div.infocard-list-evo")
+evo_node <- html_nodes(body, "div.infocard-list-evo")
 
 # Check to see if there was any evolution information
 has_evo <- length(evo_node) == 1
 
-# If there was evolution information
+# If there was evolution information, fill out the data
+# Otherwise, assume there is not evolution of this Pokemon
 if (has_evo) {
 
   # Get the list of evolutions
   evo_list <- evo_node %>% html_nodes("a.ent-name") %>% html_text
-  
+
   # Get the maximum number of evolutions for this Pokemon's evolution chain
   max_evo <- length(evo_list)
-  
-  # Find out where in the evolution chain this Pokemon sits 
-  evo_place <- which(tolower(evoChain)==name)
-  
+
+  # Find out where in the evolution chain this Pokemon sits
+  evo_place <- which(tolower(evoChain) == name)
+
   # Calculate an evolution index, how far to max evolution the Pokemon is
-  evo_index <- round(as.double(2)/as.double(max_evo),2)
-  
-# Otherwise, assume there is not evolution of this Pokemon
+  evo_index <- round(as.double(2) / as.double(max_evo), 2)
+
 } else {
 
   # Set the evolution information to NA
   max_evo <- NA_integer_
   evo_place <- NA_integer_
   evo_index <- NA_integer_
-  
-} 
+
+}
 
 # Append evolution information to the data tibble
 evo_list <- c(
-  `Has Evolution`=has_evo,
-  `Evolution Place`=evo_place,
-  `Maximum Evolution Count`=max_evo,
-  `Evolution Index`=evo_index
+  `Has Evolution` = has_evo,
+  `Evolution Place` = evo_place,
+  `Maximum Evolution Count` = max_evo,
+  `Evolution Index` = evo_index
 )
 evo_tbl <- evo_list %>% t %>% as_tibble
-data_tbl <- cbind(data_tbl,evo_tbl)
+data_tbl <- cbind(data_tbl, evo_tbl)
