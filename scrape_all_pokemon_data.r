@@ -120,7 +120,7 @@ fetch_pokemon_data <- function(row) {
   evo_node <- html_nodes(body, "div.infocard-list-evo")
 
   # Check to see if there was any evolution information
-  has_evo <- length(evo_node) == 1
+  has_evo <- length(evo_node) >= 1
 
   # If there was evolution information
   if (has_evo) {
@@ -129,10 +129,10 @@ fetch_pokemon_data <- function(row) {
     evo_list <- evo_node %>% html_nodes("a.ent-name") %>% html_text
 
     # Get the maximum number of evolutions for this Pokemon's evolution chain
-    max_evo <- length(evo_list)
+    max_evo <- length(unique(evo_list))
 
     # Find out where in the evolution chain this Pokemon sits
-    evo_place <- which(tolower(evo_list) == tolower(name))
+    evo_place <- which(tolower(evo_list) == tolower(name))[1]
 
     # Calculate an evolution index, how far to max evolution the Pokemon is
     evo_index <- round(as.double(evo_place) / as.double(max_evo), 2)
