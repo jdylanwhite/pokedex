@@ -66,6 +66,7 @@ fetch_pokemon_data <- function(row) {
   # Fetch the name and URL from the Pokedex data
   name <- row[2]
   url <- row[3]
+  print(paste0(name, row[1]))
 
   # Read the URL
   read_html(url)
