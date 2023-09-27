@@ -31,6 +31,7 @@ for (i in 1:length(generation_count)) {
 }
 
 # Add the list as a column in the data
+# TODO: Fix this, it's setting the column type as a list
 pokedex_data$Generation <- generation_id
 
 
@@ -83,7 +84,6 @@ legendary_status[legendary_id] <- "Legendary"
 legendary_status[mythical_id] <- "Mythical"
 
 # Add legendary status as a column for the pokedex data
-# TODO: Fix this, it's setting the column type as a list
 pokedex_data$Legendary.Status <- legendary_status
 
 
