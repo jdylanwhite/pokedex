@@ -21,9 +21,6 @@ fetch_pokedex_data <- function() {
   # Set the URL to fetch data from
   url <- "https://pokemondb.net/pokedex/national"
 
-  # Read the URL
-  read_html(url)
-
   # Read the body from the page
   body <- url %>% read_html() %>% html_nodes("body")
 
@@ -67,9 +64,6 @@ fetch_pokemon_data <- function(row) {
   name <- row[2]
   url <- row[3]
   print(paste0(name, row[1]))
-
-  # Read the URL
-  read_html(url)
 
   # Read the body from the page
   body <- url %>% read_html() %>% html_nodes("body")

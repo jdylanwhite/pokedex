@@ -9,9 +9,6 @@ library(tidyr)
 # Set the URL to fetch data from
 url <- "https://pokemondb.net/pokedex/national"
 
-# Read the URL
-read_html(url)
-
 # Read the body from the page
 body <- url %>% read_html() %>% html_nodes("body")
 

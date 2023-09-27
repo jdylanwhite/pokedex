@@ -29,8 +29,6 @@ url <- paste0("https://pokemondb.net/pokedex/", name)
 # Parse Main Tables -------------------------------------------------------
 
 
-# Read the URL
-read_html(url)
 
 # Read the body from the page
 body <- url %>% read_html() %>% html_nodes("body")
