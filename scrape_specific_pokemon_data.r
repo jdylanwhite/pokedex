@@ -2,9 +2,7 @@
 # Read information for a specific Pokemon from that Pokemon's main page
 #   on Pokemon.db (e.g., https://pokemondb.net/pokedex/gengar).
 
-
 # Load Packages -----------------------------------------------------------
-
 
 # Load packages
 library(rvest)
@@ -12,9 +10,7 @@ library(dplyr)
 library(tidyr)
 library(tibble)
 
-
 # Set Parameters ----------------------------------------------------------
-
 
 # Set the name of the Pokemon
 name <- "Tauros"
@@ -25,10 +21,7 @@ name <- tolower(name)
 # Build the URL to fetch Pokemon data
 url <- paste0("https://pokemondb.net/pokedex/", name)
 
-
 # Parse Main Tables -------------------------------------------------------
-
-
 
 # Read the body from the page
 body <- url %>% read_html() %>% html_nodes("body")
@@ -38,9 +31,7 @@ vitals_tables <- html_nodes(body, "table.vitals-table")
 main_table <- html_table(vitals_tables[1])[[1]]
 stats_table <- html_table(vitals_tables[4])[[1]]
 
-
 # Get Main Stats ----------------------------------------------------------
-
 
 # Function to help us turn the first row of our tibble into the header
 header_from_row <- function(df) {
@@ -65,9 +56,7 @@ stats_tbl <- stats_table %>%
 # Merge the data
 data_tbl <- cbind(main_tbl, stats_tbl)
 
-
 # Get Type Information ----------------------------------------------------
-
 
 # Clean up the types by breaking them into different columns
 num_types <- data_tbl$Type %>% strsplit(" ") %>% unlist %>% length
@@ -84,9 +73,7 @@ cols <- c(
 data_tbl <- add_column(data_tbl,
                        !!!cols[setdiff(names(cols), names(data_tbl))])
 
-
 # Get Evolution Information -----------------------------------------------
-
 
 # Look for evolution information
 evo_node <- html_nodes(body, "div.infocard-list-evo")
